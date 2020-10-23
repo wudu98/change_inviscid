@@ -7,8 +7,7 @@ subroutine fh_p_weno7_f(f_3,f_2,f_1,f0,f1,f2,f3,fhp)   !positively biased
   real*8   ::  d(0:3)
   real*8   ::  TV(0:3),TVR,TV_MAX,TV_MIN
   real*8,parameter :: epsilon=1e-6
-    
-!optimal weight
+
   d(0)=1.0d0/35.0d0
   d(1)=12.0d0/35.0d0
   d(2)=18.0d0/35.0d0
@@ -47,7 +46,7 @@ subroutine fh_p_weno7_f(f_3,f_2,f_1,f0,f1,f2,f3,fhp)   !positively biased
   end do
 
   sumalfa=alfa(0)+alfa(1)+alfa(2)+alfa(3)
-    
+
   do i=0,3
 	w(i)=alfa(i)/sumalfa
   end do
@@ -59,7 +58,5 @@ subroutine fh_p_weno7_f(f_3,f_2,f_1,f0,f1,f2,f3,fhp)   !positively biased
     fhp=fhp+w(i)*fh(i)
   end do
  
-
-  !write(*,*)"f: fh_p_weno7_f is called successfully"
  return
 end
