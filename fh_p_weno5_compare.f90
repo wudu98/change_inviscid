@@ -10,7 +10,7 @@ program fh_p_weno5_compare
     ! fortran test
     call cpu_time(start)
     do i=0,1000000
-    call fh_p_weno5_f(f_2,f_1,f0,f1,f2,fhp)
+    call fh_p_weno5(f_2,f_1,f0,f1,f2,fhp)
     end do
     call cpu_time(finish)
     ft=finish-start
@@ -35,7 +35,7 @@ program fh_p_weno5_compare
     !fortran test
     call cpu_time(start)
     do i=0,1000000
-    call fh_n_weno5_f(f2,f1,f0,f_1,f_2,fhn)
+    call fh_n_weno5(f2,f1,f0,f_1,f_2,fhn)
     end do
     call cpu_time(finish)
     ft=finish-start
