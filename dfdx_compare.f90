@@ -1,8 +1,8 @@
 program dfdx_compare
     implicit none
 
-    integer :: case_lb=1,case_ub=1
-    integer :: jj=1,nn=64
+    integer :: case_lb=2,case_ub=2
+    integer :: jj=1,nn=8
     real*8,allocatable :: fp(:,:),fpx(:,:),c_fpx(:,:)
     real*8  :: dx=1.6
     integer :: i,j
@@ -17,12 +17,12 @@ program dfdx_compare
             fp(i,j) = x*100
         end do
     end do
-
-    write(*,*)"dfdx_p function" 
+    
+    write(*,*)"dfdx function" 
     ! fortran test
     call cpu_time(start)
-    do i=0,100000
-    call dfdx_p(case_lb,case_ub,jj,nn,dx,fp,fpx)
+    do i=0,10000
+    call dfdx_n(case_lb,case_ub,jj,nn,dx,fp,fpx)
     end do
     call cpu_time(finish)
     ft=finish-start
@@ -30,8 +30,8 @@ program dfdx_compare
 
     ! c test
     call cpu_time(start)
-    do i=0,100000
-    call dfdx_p_c(case_lb,case_ub,jj,nn,dx,fp,c_fpx)
+    do i=0,10000
+    call dfdx_n_c(case_lb,case_ub,jj,nn,dx,fp,c_fpx)
     end do
     call cpu_time(finish)
     ct=finish-start
@@ -41,6 +41,11 @@ program dfdx_compare
     write(*,*)"(ctime-ftime)/ftime (%) =",(ct-ft)/ft * 100
 
     write(*,*)"-----------------------------------" 
+    ! do i=jj,nn
+    !     do j=1,5
+    !         write(*,*)i,j,fpx(i,j),c_fpx(i,j)
+    !     end do
+    ! end do
     loss = 0.0
     do i=jj,nn
         do j=1,5

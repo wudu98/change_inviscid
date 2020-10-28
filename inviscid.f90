@@ -408,9 +408,8 @@ subroutine dfdx_p(case_lb,case_ub,jj,nn,dx,fp,fpx)
 	integer :: jj,nn
 	real*8  :: dx,fp(-5:nn+6,5),fpx(1:nn,5),fhp(0:nn,5)
 	integer :: i,m
-
 do m=1,5
-		do i=jj+3,nn-3
+        do i=jj+3,nn-3
 	      call fh_p_weno7(fp(i-3,m),fp(i-2,m),fp(i-1,m),fp(i,m),fp(i+1,m),fp(i+2,m),fp(i+3,m),fhp(i,m))
 !          call fh_p_weno5(fp(i-2,m),fp(i-1,m),fp(i,m),fp(i+1,m),fp(i+2,m),fhp(i,m))
         end do
