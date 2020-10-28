@@ -1,3 +1,351 @@
+! subroutine inviscid(Lu1,Lu2,Lu3,Lu4,Lu5)
+! !-----------------------------------------------------------------------------
+! 	implicit none
+! 	include "Declaration.f90"
+! 	integer :: i,k,j,nn,n0
+!     real*8  :: k1,k2,k3,dx
+! 	real*8 :: dF1(na,nc,nr), dF2(na,nc,nr), dF3(na,nc,nr), dF4(na,nc,nr), dF5(na,nc,nr)
+! 	real*8  :: Lu1(na,nc,nr),  Lu2(na,nc,nr),  Lu3(na,nc,nr),  Lu4(na,nc,nr),  Lu5(na,nc,nr)    !��ճ��ķ���ֵ
+!     real*8,allocatable :: fp(:,:),fn(:,:),fpx(:,:),fnx(:,:)
+! 	real*8 ::  ddda,   dpda,    duada,   ducda,   durda !������߽����
+! 	real*8 ::  dddr,   dpdr,    duadr,   ducdr,   durdr !�������	
+! 	real*8 :: phi1,phi2,phi3,phi4,phi5,d1,d2,d3,d4,d5
+! 	integer :: case_LB,case_UB
+! !***************************!***************************
+! !������Ϊ��:��ȡ��һ��������ƽ�е�������,ȷ�������ұ߽��λ��n0��NN,
+! !���жϳ���߽�λ���Ƿ�Ϊ�����߽�,����ǵĻ���ȡΪcase_LB����case_UB����1
+! !Ȼ�����dfdx.f90�Ƚ���ʸͨ���ķ���,�ٵ���WENO��ʽ�����ɢ����
+! dx=da
+! k2=0
+! k3=0
+! nn=na
+! allocate(fp(1-BE:na+BE,5),fn(1-BE:na+BE,5),Fpx(na,5),Fnx(na,5))
+! do k=1,nr
+!    do j=1,nc	 
+! 	 if(nr0+k<nz2)then
+! 			 if(nx1>na0.and.nx1<=na0+na)then
+! 				do i=1,na
+! 				  if(na0+i==nx1)n0=i
+! 				end do
+! 				case_lb=1
+! 				if(na0+na==nx)then
+! 				  case_ub=1
+! 				else
+! 				  case_ub=0			  
+! 				endif
+! 			 elseif(na0>nx1)then
+! 			   n0=1
+! 			   case_lb=0
+! 			   if(na0+na==nx)then		  
+! 				 case_ub=1
+! 			   else
+! 				 case_ub=0         !1�����������߽��ڴ�		  
+! 			   endif
+! 			 endif
+! 	 else !(nr0+k>=nz2)then
+! 			 n0=1		 
+! 			 if(na0==0)then
+! 			   case_lb=1
+! 			   if(na0+na==nx)then 
+! 				 case_ub=1
+! 			   else
+! 				 case_ub=0         !1�����������߽��ڴ�
+! 			   endif
+! 			 else
+! 			   case_lb=0
+! 			   if(na0+na==nx)then		  
+! 				 case_ub=1
+! 			   else
+! 				 case_ub=0         !1�����������߽��ڴ�		  
+! 			   endif		   
+! 			 endif	   
+! 	 endif
+! 	 include "dfdx.f90"
+!   end do
+! enddo
+! deallocate(fp,fn,Fpx,Fnx)
+! !------------------------------------------------------------------------------------------------------------------------------------------
+
+! if(na0==0)then	
+! i=1
+! do k=1,nr
+!   if(nr0+k>=nz2)then
+!   do j=1,nc
+!      dpda=(-3.0d0* p(i,j,k)+4.0d0* p(i+1,j,k)- p(i+2,j,k))/(2.0d0*da)
+! 	 ddda=(-3.0d0* d(i,j,k)+4.0d0* d(i+1,j,k)- d(i+2,j,k))/(2.0d0*da)
+! 	duada=(-3.0d0*ua(i,j,k)+4.0d0*ua(i+1,j,k)-ua(i+2,j,k))/(2.0d0*da)
+! 	ducda=(-3.0d0*uc(i,j,k)+4.0d0*uc(i+1,j,k)-uc(i+2,j,k))/(2.0d0*da)
+! 	durda=(-3.0d0*ur(i,j,k)+4.0d0*ur(i+1,j,k)-ur(i+2,j,k))/(2.0d0*da)
+! 	if((ua(i,j,k)-sv(i,j,k))<0.0)then
+!         phi1=(dadx(i)*ua(i,j,k)-sv(i,j,k)*dadx(i))*(-d(i,j,k)*sv(i,j,k)*duada+dpda)
+!     else
+! 	    phi1=0.0d0
+! 	endif
+! 	if(ua(i,j,k)<0.0)then
+! 	    phi2= dadx(i)*ua(i,j,k)*(sv(i,j,k)**2*ddda-dpda)
+!         phi3= dadx(i)*ua(i,j,k)*(dadx(i)*ducda)
+!         phi4= dadx(i)*ua(i,j,k)*(dadx(i)*durda)
+! 	else
+! 	    phi2=0.0d0
+! 		phi3=0.0d0
+! 		phi4=0.0d0
+! 	endif
+! 	if((ua(i,j,k)+sv(i,j,k))<0.0)then
+!         phi5=(dadx(i)*ua(i,j,k)+sv(i,j,k)*dadx(i))*( d(i,j,k)*sv(i,j,k)*duada+dpda)
+! 	else
+! 	    phi5=0.0d0
+! 	endif
+! !*****************************************
+! 	d1=(0.5d0*(phi1+phi5)+phi2)/sv(i,j,k)**2
+! 	d2=(phi5-phi1)/(2.0d0*d(i,j,k)*sv(i,j,k))
+! 	d3=phi3/dadx(i)
+! 	d4=phi4/dadx(i)
+! 	d5=0.5d0*(phi1+phi5)
+! 	df1(i,j,k)=(          d1            )*jj(i,j,k)
+! 	df2(i,j,k)=(ua(i,j,k)*d1+d(i,j,k)*d2)*jj(i,j,k)
+! 	df3(i,j,k)=(uc(i,j,k)*d1+d(i,j,k)*d3)*jj(i,j,k)
+! 	df4(i,j,k)=(ur(i,j,k)*d1+d(i,j,k)*d4)*jj(i,j,k)
+! 	df5(i,j,k)=( 0.5d0*(ua(i,j,k)**2+uc(i,j,k)**2+ur(i,j,k)**2)*d1 &
+! 	                                      +d(i,j,k)*ua(i,j,k)*d2 &
+! 										  +d(i,j,k)*uc(i,j,k)*d3 &
+! 										  +d(i,j,k)*ur(i,j,k)*d4 &
+! 										  +               2.5d0*d5 )*jj(i,j,k)
+!   end do
+!   endif
+! end do
+! endif
+! !**********************************
+! !Զ���߽�  �����һ������(na0+na==nx)�����һ�������(i=na)
+! if(na0+na==nx)then	
+! i=na
+! do k=1,nr
+!   do j=1,nc
+!      dpda=(3.0d0* p(i,j,k)-4.0d0* p(i-1,j,k)+ p(i-2,j,k))/(2.0d0*da)
+! 	 ddda=(3.0d0* d(i,j,k)-4.0d0* d(i-1,j,k)+ d(i-2,j,k))/(2.0d0*da)
+! 	duada=(3.0d0*ua(i,j,k)-4.0d0*ua(i-1,j,k)+ua(i-2,j,k))/(2.0d0*da)
+! 	ducda=(3.0d0*uc(i,j,k)-4.0d0*uc(i-1,j,k)+uc(i-2,j,k))/(2.0d0*da)
+! 	durda=(3.0d0*ur(i,j,k)-4.0d0*ur(i-1,j,k)+ur(i-2,j,k))/(2.0d0*da)
+! 	if((ua(i,j,k)-sv(i,j,k))<=0.0)then
+!                 phi1=0.0d0
+!         else
+! 	    phi1=(dadx(i)*ua(i,j,k)-sv(i,j,k)*dadx(i))*(-d(i,j,k)*sv(i,j,k)*duada+dpda)
+! 	endif
+! 	if(ua(i,j,k)<=0.0)then
+!                 phi2=0.0d0
+!         	phi3=0.0d0
+! 		phi4=0.0d0
+! 	else
+! 	    phi2= dadx(i)*ua(i,j,k)*(sv(i,j,k)**2*ddda-dpda)
+!             phi3= dadx(i)*ua(i,j,k)*(dadx(i)*ducda)
+!             phi4= dadx(i)*ua(i,j,k)*(dadx(i)*durda)
+! 	endif
+! 	if((ua(i,j,k)+sv(i,j,k))<=0.0)then
+!         phi5=0.0d0
+! 	else
+! 	    phi5=(dadx(i)*ua(i,j,k)+sv(i,j,k)*dadx(i))*( d(i,j,k)*sv(i,j,k)*duada+dpda)
+! 	endif
+! !*****************************************
+! 	d1=(0.5d0*(phi1+phi5)+phi2)/sv(i,j,k)**2
+! 	d2=(phi5-phi1)/(2.0d0*d(i,j,k)*sv(i,j,k))
+! 	d3=phi3/dadx(i)
+! 	d4=phi4/dadx(i)
+! 	d5=0.5d0*(phi1+phi5)
+! 	df1(i,j,k)=(          d1            )*jj(i,j,k)
+! 	df2(i,j,k)=(ua(i,j,k)*d1+d(i,j,k)*d2)*jj(i,j,k)
+! 	df3(i,j,k)=(uc(i,j,k)*d1+d(i,j,k)*d3)*jj(i,j,k)
+! 	df4(i,j,k)=(ur(i,j,k)*d1+d(i,j,k)*d4)*jj(i,j,k)
+! 	df5(i,j,k)=( 0.5d0*(ua(i,j,k)**2+uc(i,j,k)**2+ur(i,j,k)**2)*d1 &
+! 	                                      +d(i,j,k)*ua(i,j,k)*d2 &
+! 										  +d(i,j,k)*uc(i,j,k)*d3 &
+! 										  +d(i,j,k)*ur(i,j,k)*d4 &
+! 										  +               2.5d0*d5 )*jj(i,j,k)
+!   end do
+! end do
+!  endif
+! !**********************************
+
+!     do k=1,nr
+! 	  do j=1,nc
+! 		do i=1,na
+! 		    if(    (na0+i>=nx1.and.nr0+k>1).or.(nr0+k>=nz2)      )then
+! 			    Lu1(i,j,k)=df1(i,j,k)
+! 				Lu2(i,j,k)=df2(i,j,k)
+! 				Lu3(i,j,k)=df3(i,j,k)
+! 				Lu4(i,j,k)=df4(i,j,k)
+! 				Lu5(i,j,k)=df5(i,j,k)
+! 			endif
+! 		end do
+! 	  end do
+! 	end do
+
+! !**************************************************************************************************
+
+! k1=0
+! k3=0
+! n0=1
+! nn=nc
+! case_lb=0
+! case_ub=0
+! allocate(fp(1-BE:nc+BE,5),fn(1-BE:nc+BE,5),Fpx(nc,5),Fnx(nc,5))
+! do k=1,nr
+! dx=z(k)*dc
+! do i=1,na
+!        if(    (na0+i>=nx1.and.nr0+k>1).or.(nr0+k>=nz2)      )then
+! 		  do j=1-BE,nc+BE
+! 		    k2=dcdy(j)*jj(i,j,k)
+! 		    call steger_warming(k1,k2,k3,d(i,j,k),ua(i,j,k),uc(i,j,k),ur(i,j,k),sv(i,j,k),Fp(j,:),Fn(j,:))
+! 		  end do
+!   	      call dfdx_p(case_lb,case_ub,n0,nn,dx,fp,fpx)
+!   		  call dfdx_n(case_lb,case_ub,n0,nn,dx,fn,fnx)
+!           do j=n0,nn
+! 		    df1(i,j,k)=fpx(j,1)+fnx(j,1)
+! 			df2(i,j,k)=fpx(j,2)+fnx(j,2)
+! 			df3(i,j,k)=fpx(j,3)+fnx(j,3)
+! 			df4(i,j,k)=fpx(j,4)+fnx(j,4)
+! 			df5(i,j,k)=fpx(j,5)+fnx(j,5)
+!           end do
+! 	    endif
+! end do
+! end do
+! deallocate(fp,fn,Fpx,Fnx)
+
+! !**************************************
+!     do k=1,nr
+! 	  do j=1,nc
+! 		do i=1,na
+! 		    if(    (na0+i>=nx1.and.nr0+k>1).or.(nr0+k>=nz2)      )then
+! 			    Lu1(i,j,k)=Lu1(i,j,k)+df1(i,j,k)
+! 				Lu2(i,j,k)=Lu2(i,j,k)+df2(i,j,k)
+! 				Lu3(i,j,k)=Lu3(i,j,k)+df3(i,j,k)
+! 				Lu4(i,j,k)=Lu4(i,j,k)+df4(i,j,k)
+! 				Lu5(i,j,k)=Lu5(i,j,k)+df5(i,j,k)
+! 			endif
+! 		end do
+! 	  end do
+! 	end do
+! !**************************************************************************************************
+! !------------------------------------------------------------------------------------------------------------------------------------------
+! dx=dr
+! k1=0
+! k2=0
+! nn=nr
+! allocate(fp(1-BE:nr+BE,5),fn(1-BE:nr+BE,5),Fpx(nr,5),Fnx(nr,5))
+! do j=1,nc
+!   do i=1,na
+!     if(na0+i<nx1)then
+! 		  if(nz2>nr0.and.nz2<=nr0+nr)then
+! 			do k=1,nr
+! 			  if(nr0+k==nz2)n0=k
+! 			end do
+! 			case_lb=1
+! 			if(nr0+nr==nz)then		  
+! 			  case_ub=1
+! 			else
+! 			  case_ub=0
+! 			endif		
+! 		  elseif(nr0>nz2)then
+! 			n0=1
+! 			case_lb=0
+! 			if(nr0+nr==nz)then		  
+! 			  case_ub=1
+! 			else
+! 			  case_ub=0         !1�����������߽��ڴ�
+! 			endif		
+! 		  endif
+! 	else
+! 		  n0=1
+! 		  if(nr0==0)then
+! 			case_lb=1
+! 			if(nr0+nr==nz)then		  
+! 			  case_ub=1
+! 			else
+! 			  case_ub=0         !1�����������߽��ڴ�
+! 			endif		
+! 		  else
+! 			case_lb=0
+! 			if(nr0+nr==nz)then		  
+! 			  case_ub=1
+! 			else
+! 			  case_ub=0         !1�����������߽��ڴ�
+! 			endif					
+! 		  endif	  	  
+! 	endif
+! 	include "dfdz.f90"
+!   end do
+! enddo
+! deallocate(fp,fn,Fpx,Fnx)
+! !------------------------------------------------------------------------------------------------------------------------------------------
+! !���ڱ߽�
+! if(nr0+nr==nz)then
+! k=nr
+! do j=1,nc
+!   do i=1,na
+!          dddr=(3.0d0* d(i,j,k)-4.0d0* d(i,j,k-1)+ d(i,j,k-2))/(2.0d0*dr)
+! 		 dpdr=(3.0d0* p(i,j,k)-4.0d0* p(i,j,k-1)+ p(i,j,k-2))/(2.0d0*dr)
+! 		duadr=(3.0d0*ua(i,j,k)-4.0d0*ua(i,j,k-1)+ua(i,j,k-2))/(2.0d0*dr)
+! 		ducdr=(3.0d0*uc(i,j,k)-4.0d0*uc(i,j,k-1)+uc(i,j,k-2))/(2.0d0*dr)
+!         durdr=(3.0d0*ur(i,j,k)-4.0d0*ur(i,j,k-1)+ur(i,j,k-2))/(2.0d0*dr)
+! 		if((ur(i,j,k)-sv(i,j,k))<=0.0)then
+!             phi1=0.0d0
+! 		else
+! 		    phi1=(drdz(k)*ur(i,j,k)-sv(i,j,k)*drdz(k))*(-d(i,j,k)*sv(i,j,k)*durdr+dpdr)
+! 		endif
+
+!         if(ur(i,j,k)<=0.0)then
+! 		    phi2=0.0d0
+! 			phi3=0.0d0
+! 			phi4=0.0d0
+! 		else
+! 			phi2=drdz(k)*ur(i,j,k)*(sv(i,j,k)**2*dddr-dpdr)
+! 			phi3=drdz(k)*ur(i,j,k)*(drdz(k)*duadr)
+! 			phi4=drdz(k)*ur(i,j,k)*(drdz(k)*ducdr)
+! 		endif
+! 		if((ur(i,j,k)+sv(i,j,k))<=0.0)then
+! 		    phi5=0.0d0
+! 		else
+! 	        phi5=(drdz(k)*ur(i,j,k)+sv(i,j,k)*drdz(k))*(d(i,j,k)*sv(i,j,k)*durdr+dpdr)
+! 		endif	
+! !*****************************************
+! 	d1=(0.5d0*(phi1+phi5)+phi2)/sv(i,j,k)**2
+! 	d2=phi3/drdz(k)
+! 	d3=phi4/drdz(k)
+! 	d4=(phi5-phi1)/(2.0d0*d(i,j,k)*sv(i,j,k))
+! 	d5=0.5d0*(phi1+phi5)
+! 	df1(i,j,k)=(          d1            )*jj(i,j,k)
+! 	df2(i,j,k)=(ua(i,j,k)*d1+d(i,j,k)*d2)*jj(i,j,k)
+! 	df3(i,j,k)=(uc(i,j,k)*d1+d(i,j,k)*d3)*jj(i,j,k)
+! 	df4(i,j,k)=(ur(i,j,k)*d1+d(i,j,k)*d4)*jj(i,j,k)
+! 	df5(i,j,k)=( 0.5d0*(ua(i,j,k)**2+uc(i,j,k)**2+ur(i,j,k)**2)*d1 &
+! 	                                      +d(i,j,k)*ua(i,j,k)*d2 &
+! 										  +d(i,j,k)*uc(i,j,k)*d3 &
+! 										  +d(i,j,k)*ur(i,j,k)*d4 &
+! 										  +               2.5d0*d5 )*jj(i,j,k)	
+! !*****************************************
+!   end do
+! end do
+! endif
+! !**************************************************************************************************
+
+! !**************************************************************************************************
+! !��ճ����ķ���ֵ
+!     do k=1,nr
+! 	  do j=1,nc
+! 		do i=1,na
+! 		    if(    (na0+i>=nx1.and.nr0+k>1).or.(nr0+k>=nz2)      )then
+! 			    Lu1(i,j,k)=(Lu1(i,j,k)+df1(i,j,k))/jj(i,j,k)
+! 				Lu2(i,j,k)=(Lu2(i,j,k)+df2(i,j,k))/jj(i,j,k)
+! 				Lu3(i,j,k)=(Lu3(i,j,k)+df3(i,j,k))/jj(i,j,k)
+! 				Lu4(i,j,k)=(Lu4(i,j,k)+df4(i,j,k))/jj(i,j,k)
+! 				Lu5(i,j,k)=(Lu5(i,j,k)+df5(i,j,k))/jj(i,j,k)
+! 			endif
+! 		end do
+! 	  end do
+! 	end do
+
+! !**************************************************************************************************
+!   return
+! end
+! !------------------------------------------------------------------------------------------------------------------------------------------
 
 !**********************************************************************************************************************************
 subroutine steger_warming(k1,k2,k3,d,u,v,w,sv,Fp,Fn)
@@ -60,8 +408,9 @@ subroutine dfdx_p(case_lb,case_ub,jj,nn,dx,fp,fpx)
 	integer :: jj,nn
 	real*8  :: dx,fp(-5:nn+6,5),fpx(1:nn,5),fhp(0:nn,5)
 	integer :: i,m
+
 do m=1,5
-        do i=jj+3,nn-3
+		do i=jj+3,nn-3
 	      call fh_p_weno7(fp(i-3,m),fp(i-2,m),fp(i-1,m),fp(i,m),fp(i+1,m),fp(i+2,m),fp(i+3,m),fhp(i,m))
 !          call fh_p_weno5(fp(i-2,m),fp(i-1,m),fp(i,m),fp(i+1,m),fp(i+2,m),fhp(i,m))
         end do
