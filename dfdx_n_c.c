@@ -30,6 +30,8 @@ void dfdx_n_c_(const int *case_lb, const int *case_ub, const int *jj, const int 
 		else{
 			for(int i=(*jj)+BE-1; i<=(*jj)+2+BE-1; i++){
 				fh_p_weno7_c_(&fn[m*nn12+i+3],&fn[m*nn12+i+2],&fn[m*nn12+i+1],&fn[m*nn12+i],&fn[m*nn12+i-1],&fn[m*nn12+i-2],&fn[m*nn12+i-3],&fhn[m][i]);
+			}
+			for(int i=(*jj)+BE-1; i<=(*jj)+2+BE-1; i++){
 				fnx[m*nn0+i-BE] = (fhn[m][i+1] - fhn[m][i]) / *dx;
 			}
 		}
