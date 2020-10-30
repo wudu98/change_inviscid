@@ -467,7 +467,7 @@ enddo
 
 call dfdx_p_c(case_lb, case_ub, jj, nn, dx, fp, fpx_c)  
 do m=1,5
-  do i=1,nn
+  do i=jj,nn
 !                        write(*,*) i, m, fpx_c(i,m), fpx(i,m) 
          if(DABS(fpx_c(i,m) - fpx(i,m))  > 1e-4) then 
                  write(*,*) "Error dfdx_p fpx()", i, m, fpx_c(i,m), fpx(i,m) 
@@ -539,7 +539,7 @@ do m=1,5
 end do	
 call dfdx_n_c(case_lb, case_ub, jj, nn, dx, fn, fnx_c)  
 do m=1,5
-  do i=1,nn
+  do i=jj,nn
       if(DABS(fnx_c(i,m) - fnx(i,m))  > 1e-4) then 
               write(*,*) "Error dfdx_n fnx()", i, m, fnx_c(i,m), fnx(i,m) 
       endif       

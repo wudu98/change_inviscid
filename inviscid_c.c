@@ -198,11 +198,96 @@ void fh_p_weno7_c_(const double *f_3, const double *f_2, const double *f_1, cons
 }
 
 
-void dfdx_p_c_(const int *case_lb, const int *case_ub, const int *jj, const int *nn, const double* dx, double fp[], double fpx[]){
+void dfdx_p_c_(const int *case_lb, const int *case_ub, const int *jj, const int *nn, const double *dx, double fp[], double fpx[]){
+	int i,m;
+	const int BE_1 = 5;
+	const int BE = 6;
+	const int nn0 = *nn;
+	const int nn12 = *nn+2*BE;  
+	double fhp[2];
+	int flag = 0;
+	if((*case_lb) == 1 && (*case_ub) == 1){
+		for (int m = 0; m <= 4; m++) {
+			i=(*jj)+BE-1;
+				fpx[m*nn0+i-BE] = (fp[m*nn12+i+1] - fp[m*nn12+i]) ;
+			i=(*jj)+1+BE-1;
+				fpx[m*nn0+i-BE] = (fp[m*nn12+i  ]   - fp[m*nn12+i-1]) ;
+				fh_p_weno3_c_(&fp[m*nn12+i-1],&fp[m*nn12+i],&fp[m*nn12+i+1],&fhp[flag=flag^1]);
+			i=(*jj)+2+BE-1;
+				fh_p_weno5_c_(&fp[m*nn12+i-2],&fp[m*nn12+i-1],&fp[m*nn12+i],&fp[m*nn12+i+1],&fp[m*nn12+i+2],&fhp[flag=flag^1]);
+				fpx[m*nn0+i-BE] = (fhp[flag]  - fhp[flag^1]  )     ;
+			for (int i = (*jj)+3+BE-1; i <= (*nn)-3+BE-1; i++){
+				fh_p_weno7_c_(&fp[m*nn12+i-3],&fp[m*nn12+i-2],&fp[m*nn12+i-1],&fp[m*nn12+i],&fp[m*nn12+i+1],&fp[m*nn12+i+2],&fp[m*nn12+i+3],&fhp[flag=flag^1]);
+				fpx[m*nn0+i-BE] = (fhp[flag]  - fhp[flag^1]  ) ;
+			}
+			i=(*nn)-2+BE-1;
+				fh_p_weno5_c_(&fp[m*nn12+i-2],&fp[m*nn12+i-1],&fp[m*nn12+i],&fp[m*nn12+i+1],&fp[m*nn12+i+2],&fhp[flag=flag^1]);
+				fpx[m*nn0+i-BE] = (fhp[flag]  - fhp[flag^1]  ) ;
+			i=(*nn)-1+BE-1;
+				fh_p_weno3_c_(&fp[m*nn12+i-1],&fp[m*nn12+i],&fp[m*nn12+i+1],&fhp[flag=flag^1]);
+				fpx[m*nn0+i-BE] = (fhp[flag]  - fhp[flag^1]  ) ;
+			i=(*nn)+BE-1;
+				fpx[m*nn0+i-BE] = (fp[m*nn12+nn0+BE-1] - fp[m*nn12+nn0-1+BE-1] ) ;
+		}
+		
+	}
+	else if((*case_lb) == 1){
+		for (int m = 0; m <= 4; m++) {
+			i=(*jj)+BE-1;
+				fpx[m*nn0+i-BE] = (fp[m*nn12+i+1] - fp[m*nn12+i]) ;
+			i=(*jj)+1+BE-1;
+				fpx[m*nn0+i-BE] = (fp[m*nn12+i  ]   - fp[m*nn12+i-1]) ;
+				fh_p_weno3_c_(&fp[m*nn12+i-1],&fp[m*nn12+i],&fp[m*nn12+i+1],&fhp[flag=flag^1]);
+			i=(*jj)+2+BE-1;
+				fh_p_weno5_c_(&fp[m*nn12+i-2],&fp[m*nn12+i-1],&fp[m*nn12+i],&fp[m*nn12+i+1],&fp[m*nn12+i+2],&fhp[flag=flag^1]);
+				fpx[m*nn0+i-BE] = (fhp[flag]  - fhp[flag^1]  )     ;
+			for (int i = (*jj)+3+BE-1; i <= (*nn)+BE-1; i++){
+				fh_p_weno7_c_(&fp[m*nn12+i-3],&fp[m*nn12+i-2],&fp[m*nn12+i-1],&fp[m*nn12+i],&fp[m*nn12+i+1],&fp[m*nn12+i+2],&fp[m*nn12+i+3],&fhp[flag=flag^1]);
+				fpx[m*nn0+i-BE] = (fhp[flag]  - fhp[flag^1]  ) ;
+			}
+		}
+	}
+	else if((*case_ub) == 1){
+		for (int m = 0; m <= 4; m++) {
+			i = (*jj)-1+BE-1;
+				fh_p_weno7_c_(&fp[m*nn12+i-3],&fp[m*nn12+i-2],&fp[m*nn12+i-1],&fp[m*nn12+i],&fp[m*nn12+i+1],&fp[m*nn12+i+2],&fp[m*nn12+i+3],&fhp[flag=flag^1]);
+			for (int i = (*jj)+BE-1; i <= (*nn)-3+BE-1; i++){
+				fh_p_weno7_c_(&fp[m*nn12+i-3],&fp[m*nn12+i-2],&fp[m*nn12+i-1],&fp[m*nn12+i],&fp[m*nn12+i+1],&fp[m*nn12+i+2],&fp[m*nn12+i+3],&fhp[flag=flag^1]);
+				fpx[m*nn0+i-BE] = (fhp[flag]  - fhp[flag^1]  ) ;
+			}
+			i=(*nn)-2+BE-1;
+				fh_p_weno5_c_(&fp[m*nn12+i-2],&fp[m*nn12+i-1],&fp[m*nn12+i],&fp[m*nn12+i+1],&fp[m*nn12+i+2],&fhp[flag=flag^1]);
+				fpx[m*nn0+i-BE] = (fhp[flag]  - fhp[flag^1]  ) ;
+			i=(*nn)-1-1;
+				fh_p_weno3_c_(&fp[m*nn12+i-1+BE],&fp[m*nn12+i+BE],&fp[m*nn12+i+1+BE],&fhp[flag=flag^1]);
+				fpx[m*nn0+i] = (fhp[flag]  - fhp[flag^1]  ) ;
+			i=(*nn)-1;
+				fpx[m*nn0+i] = (fp[m*nn12+nn0+BE-1] - fp[m*nn12+nn0-1+BE-1] ) ;
+		}
+	}
+	else{
+		for (int m = 0; m <= 4; m++) {
+			i = (*jj)-1+BE-1;
+				fh_p_weno7_c_(&fp[m*nn12+i-3],&fp[m*nn12+i-2],&fp[m*nn12+i-1],&fp[m*nn12+i],&fp[m*nn12+i+1],&fp[m*nn12+i+2],&fp[m*nn12+i+3],&fhp[flag=flag^1]);
+			for (int i = (*jj)+BE-1; i <= (*nn)+BE-1; i++){
+				fh_p_weno7_c_(&fp[m*nn12+i-3],&fp[m*nn12+i-2],&fp[m*nn12+i-1],&fp[m*nn12+i],&fp[m*nn12+i+1],&fp[m*nn12+i+2],&fp[m*nn12+i+3],&fhp[flag=flag^1]);
+				fpx[m*nn0+i-BE] = (fhp[flag]  - fhp[flag^1]  ) ;
+			}
+		}
+	}
+	double _dx = 1.0 / *dx;
+	for (int m = 0; m <= 4; m++) {
+		for (int i = (*jj)-1; i <= (*nn)-1; i++)
+			fpx[m*nn0+i] = fpx[m*nn0+i] * _dx;
+	}
+}
+
+
+void dfdx_p_v0_c_(const int *case_lb, const int *case_ub, const int *jj, const int *nn, const double* dx, double fp[], double fpx[]){
 	int i,m;
 	const int BE = 6;
 	const int nn0 = *nn;
-	const int nn12 = *nn+2*BE;  //数组变化
+	const int nn12 = *nn+2*BE; 
 	double fhp[5][nn12+1];
 	for (int m = 1-1; m <= 5-1; m++) {
 		for (int i = (*jj)+3+BE-1; i <= (*nn)-3+BE-1; i++)
@@ -226,7 +311,6 @@ void dfdx_p_c_(const int *case_lb, const int *case_ub, const int *jj, const int 
 			}
 		}
 		if(*case_ub == 1){
-			fpx[m*nn0+nn0+BE-1]=(fp[m*nn12+nn0+BE-1] - fp[m*nn12+nn0-1+BE-1] ) / *dx;
 			i=(*nn)-2+BE-1;
 			fh_p_weno5_c_(&fp[m*nn12+i-2],&fp[m*nn12+i-1],&fp[m*nn12+i],&fp[m*nn12+i+1],&fp[m*nn12+i+2],&fhp[m][i]);
 			fpx[m*nn0+i-BE] = (fhp[m][i] - fhp[m][i-1]) / *dx;
@@ -248,12 +332,96 @@ void dfdx_p_c_(const int *case_lb, const int *case_ub, const int *jj, const int 
 
 }
 
+/*  same as dfdx_p_c_  just adjust "fh_p_weno7_c_" input*/
+void dfdx_n_c_(const int *case_lb, const int *case_ub, const int *jj, const int *nn, const double *dx, double fp[], double fpx[]){
+	int i,m;
+	const int BE_1 = 5;
+	const int BE = 6;
+	const int nn0 = *nn;
+	const int nn12 = *nn+2*BE;  
+	double fhp[2];
+	int flag = 0;
+	if((*case_lb) == 1 && (*case_ub) == 1){
+		for (int m = 0; m <= 4; m++) {
+			i=(*jj)+BE-1;
+				fpx[m*nn0+i-BE] = (fp[m*nn12+i+1] - fp[m*nn12+i]) ;
+			i=(*jj)+1+BE-1;
+				fpx[m*nn0+i-BE] = (fp[m*nn12+i  ]   - fp[m*nn12+i-1]) ;
+				fh_p_weno3_c_(&fp[m*nn12+i+1],&fp[m*nn12+i],&fp[m*nn12+i-1],&fhp[flag=flag^1]);
+			i=(*jj)+2+BE-1;
+				fh_p_weno5_c_(&fp[m*nn12+i+2],&fp[m*nn12+i+1],&fp[m*nn12+i],&fp[m*nn12+i-1],&fp[m*nn12+i-2],&fhp[flag=flag^1]);
+				fpx[m*nn0+i-BE] = (fhp[flag]  - fhp[flag^1]  )     ;
+			for (int i = (*jj)+3+BE-1; i <= (*nn)-3+BE-1; i++){
+				fh_p_weno7_c_(&fp[m*nn12+i+3],&fp[m*nn12+i+2],&fp[m*nn12+i+1],&fp[m*nn12+i],&fp[m*nn12+i-1],&fp[m*nn12+i-2],&fp[m*nn12+i-3],&fhp[flag=flag^1]);
+				fpx[m*nn0+i-BE] = (fhp[flag]  - fhp[flag^1]  ) ;
+			}
+			i=(*nn)-2+BE-1;
+				fh_p_weno5_c_(&fp[m*nn12+i+2],&fp[m*nn12+i+1],&fp[m*nn12+i],&fp[m*nn12+i-1],&fp[m*nn12+i-2],&fhp[flag=flag^1]);
+				fpx[m*nn0+i-BE] = (fhp[flag]  - fhp[flag^1]  ) ;
+			i=(*nn)-1+BE-1;
+				fh_p_weno3_c_(&fp[m*nn12+i+1],&fp[m*nn12+i],&fp[m*nn12+i-1],&fhp[flag=flag^1]);
+				fpx[m*nn0+i-BE] = (fhp[flag]  - fhp[flag^1]  ) ;
+			i=(*nn)+BE-1;
+				fpx[m*nn0+i-BE] = (fp[m*nn12+nn0+BE-1] - fp[m*nn12+nn0-1+BE-1] ) ;
+		}
+		
+	}
+	else if((*case_lb) == 1){
+		for (int m = 0; m <= 4; m++) {
+			i=(*jj)+BE-1;
+				fpx[m*nn0+i-BE] = (fp[m*nn12+i+1] - fp[m*nn12+i]) ;
+			i=(*jj)+1+BE-1;
+				fpx[m*nn0+i-BE] = (fp[m*nn12+i  ]   - fp[m*nn12+i-1]) ;
+				fh_p_weno3_c_(&fp[m*nn12+i+1],&fp[m*nn12+i],&fp[m*nn12+i-1],&fhp[flag=flag^1]);
+			i=(*jj)+2+BE-1;
+				fh_p_weno5_c_(&fp[m*nn12+i+2],&fp[m*nn12+i+1],&fp[m*nn12+i],&fp[m*nn12+i-1],&fp[m*nn12+i-2],&fhp[flag=flag^1]);
+				fpx[m*nn0+i-BE] = (fhp[flag]  - fhp[flag^1]  )     ;
+			for (int i = (*jj)+3+BE-1; i <= (*nn)+BE-1; i++){
+				fh_p_weno7_c_(&fp[m*nn12+i+3],&fp[m*nn12+i+2],&fp[m*nn12+i+1],&fp[m*nn12+i],&fp[m*nn12+i-1],&fp[m*nn12+i-2],&fp[m*nn12+i-3],&fhp[flag=flag^1]);
+				fpx[m*nn0+i-BE] = (fhp[flag]  - fhp[flag^1]  ) ;
+			}
+		}
+	}
+	else if((*case_ub) == 1){
+		for (int m = 0; m <= 4; m++) {
+			i = (*jj)-1+BE-1;
+				fh_p_weno7_c_(&fp[m*nn12+i+3],&fp[m*nn12+i+2],&fp[m*nn12+i+1],&fp[m*nn12+i],&fp[m*nn12+i-1],&fp[m*nn12+i-2],&fp[m*nn12+i-3],&fhp[flag=flag^1]);
+			for (int i = (*jj)+BE-1; i <= (*nn)-3+BE-1; i++){
+				fh_p_weno7_c_(&fp[m*nn12+i+3],&fp[m*nn12+i+2],&fp[m*nn12+i+1],&fp[m*nn12+i],&fp[m*nn12+i-1],&fp[m*nn12+i-2],&fp[m*nn12+i-3],&fhp[flag=flag^1]);
+				fpx[m*nn0+i-BE] = (fhp[flag]  - fhp[flag^1]  ) ;
+			}
+			i=(*nn)-2+BE-1;
+				fh_p_weno5_c_(&fp[m*nn12+i+2],&fp[m*nn12+i+1],&fp[m*nn12+i],&fp[m*nn12+i-1],&fp[m*nn12+i-2],&fhp[flag=flag^1]);
+				fpx[m*nn0+i-BE] = (fhp[flag]  - fhp[flag^1]  ) ;
+			i=(*nn)-1-1;
+				fh_p_weno3_c_(&fp[m*nn12+i+1],&fp[m*nn12+i],&fp[m*nn12+i-1],&fhp[flag=flag^1]);
+				fpx[m*nn0+i] = (fhp[flag]  - fhp[flag^1]  ) ;
+			i=(*nn)-1;
+				fpx[m*nn0+i] = (fp[m*nn12+nn0+BE-1] - fp[m*nn12+nn0-1+BE-1] ) ;
+		}
+	}
+	else{
+		for (int m = 0; m <= 4; m++) {
+			i = (*jj)-1+BE-1;
+				fh_p_weno7_c_(&fp[m*nn12+i+3],&fp[m*nn12+i+2],&fp[m*nn12+i+1],&fp[m*nn12+i],&fp[m*nn12+i-1],&fp[m*nn12+i-2],&fp[m*nn12+i-3],&fhp[flag=flag^1]);
+			for (int i = (*jj)+BE-1; i <= (*nn)+BE-1; i++){
+				fh_p_weno7_c_(&fp[m*nn12+i+3],&fp[m*nn12+i+2],&fp[m*nn12+i+1],&fp[m*nn12+i],&fp[m*nn12+i-1],&fp[m*nn12+i-2],&fp[m*nn12+i-3],&fhp[flag=flag^1]);
+				fpx[m*nn0+i-BE] = (fhp[flag]  - fhp[flag^1]  ) ;
+			}
+		}
+	}
+	double _dx = 1.0 / *dx;
+	for (int m = 0; m <= 4; m++) {
+		for (int i = (*jj)-1; i <= (*nn)-1; i++)
+			fpx[m*nn0+i] = fpx[m*nn0+i] * _dx;
+	}
+}
 
-void dfdx_n_c_(const int *case_lb, const int *case_ub, const int *jj, const int *nn, const double* dx, double fn[], double fnx[]){
+void dfdx_n_v0_c_(const int *case_lb, const int *case_ub, const int *jj, const int *nn, const double* dx, double fn[], double fnx[]){
 	int i,m;
 	const int BE = 6;
 	const int nn0 = *nn;
-	const int nn12 = *nn+2*BE;  //数组变化
+	const int nn12 = *nn+2*BE;  
 	double fhn[5][nn12+1];
 	for (int m = 1-1; m <= 5-1; m++) {
 		for (int i = (*jj)+3+BE-1; i <= (*nn)-3+BE-1; i++)
